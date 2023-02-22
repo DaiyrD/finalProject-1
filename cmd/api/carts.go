@@ -3,6 +3,7 @@ package main
 import (
 	"errors"
 	"finalProjectAdvancedP/internal/data"
+	"finalProjectAdvancedP/internal/validator"
 	"fmt"
 	"net/http"
 )
@@ -13,6 +14,14 @@ func (app *application) addToCartHandler(w http.ResponseWriter, r *http.Request)
 		BookID   int64 `json:"book_id"`
 		Quantity int64 `json:"quantity"`
 	}
+
+	v := validator.New()
+
+	if data.ValidateCart(v, input); !v.Valid() {
+		app.failedValidationResponse(w, r, v.Errors)
+		return
+	}
+
 	err := app.readJSON(w, r, &input)
 	book, err := app.models.Books.Get(input.BookID)
 	if err != nil {

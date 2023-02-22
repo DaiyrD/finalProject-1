@@ -3,6 +3,7 @@ package data
 import (
 	"context"
 	"database/sql"
+	"finalProjectAdvancedP/internal/validator"
 	"github.com/lib/pq"
 	"time"
 )
@@ -13,6 +14,17 @@ type Cart struct {
 	TotalPrice uint64   `json:"total_price"`
 	Books      []string `json:"books"`
 	Quantity   int64    `json:"quantity"`
+}
+
+func ValidateCart(v *validator.Validator, cart struct {
+	UserId   int64 `json:"user_id"`
+	BookID   int64 `json:"book_id"`
+	Quantity int64 `json:"quantity"`
+}) {
+	v.Check(cart.UserId > 0, "user_id", "must be greater than zero")
+	v.Check(cart.BookID > 0, "book_id", "must be greater than zero")
+	v.Check(cart.Quantity > 0, "quantity", "must be greater than zero")
+	v.Check(cart.Quantity <= 20, "quantity", "can not be greater than twenty")
 }
 
 type CartModel struct {

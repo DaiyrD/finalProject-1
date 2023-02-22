@@ -85,3 +85,10 @@ func (app *application) invalidAuthenticationTokenResponse(w http.ResponseWriter
 	message := "invalid or missing authentication token"
 	app.errorResponse(w, r, http.StatusUnauthorized, message)
 }
+
+func (app *application) notAdminErrorResponse(w http.ResponseWriter, r *http.Request, err error) {
+	app.logError(r, err)
+
+	message := "only admin can perform such function"
+	app.errorResponse(w, r, http.StatusForbidden, message)
+}

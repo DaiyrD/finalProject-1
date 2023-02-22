@@ -69,7 +69,7 @@ func (app *application) createBookHandler(w http.ResponseWriter, r *http.Request
 		// movie struct with the system-generated information.
 		err = app.models.Books.Insert(book)
 		if err != nil {
-			app.serverErrorResponse(w, r, err)
+			app.notAdminErrorResponse(w, r, err)
 			return
 		}
 	} else {
@@ -131,6 +131,7 @@ func (app *application) updateBookHandler(w http.ResponseWriter, r *http.Request
 		app.notFoundResponse(w, r)
 		return
 	}
+
 	// Fetch the existing movie record from the database, sending a 404 Not Found
 	// response to the client if we couldn't find a matching record.
 	book, err := app.models.Books.Get(id)
@@ -160,7 +161,9 @@ func (app *application) updateBookHandler(w http.ResponseWriter, r *http.Request
 		Author *string  `json:"author"`
 		Genres []string `json:"genres"`
 		Price  *uint64  `json:"price"`
+		Email  *string  `json:"email"`
 	}
+
 	// Read the JSON request body data into the input struct.
 	err = app.readJSON(w, r, &input)
 	if err != nil {
@@ -168,19 +171,6 @@ func (app *application) updateBookHandler(w http.ResponseWriter, r *http.Request
 		return
 	}
 
-	// Copy the values from the request body to the appropriate fields of the movie
-	// record.
-	//movie.Title = input.Title
-	//movie.Year = input.Year
-	//movie.Runtime = input.Runtime
-	//movie.Genres = input.Genres
-
-	// If the input.Title value is nil then we know that no corresponding "title" key/
-	// value pair was provided in the JSON request body. So we move on and leave the
-	// movie record unchanged. Otherwise, we update the movie record with the new title
-	// value. Importantly, because input.Title is a now a pointer to a string, we need
-	// to dereference the pointer using the * operator to get the underlying value
-	// before assigning it to our movie record.
 	if input.Title != nil {
 		book.Title = *input.Title
 	}
@@ -198,23 +188,34 @@ func (app *application) updateBookHandler(w http.ResponseWriter, r *http.Request
 		book.Price = *input.Price
 	}
 
-	// Validate the updated movie record, sending the client a 422 Unprocessable Entity
-	// response if any checks fail.
 	v := validator.New()
+
 	if data.ValidateBook(v, book); !v.Valid() {
 		app.failedValidationResponse(w, r, v.Errors)
 		return
 	}
-	// Pass the updated movie record to our new Update() method.
-	// Intercept any ErrEditConflict error and call the new editConflictResponse()
-	// helper.
-	err = app.models.Books.Update(book)
+
+	if data.ValidateEmail(v, *input.Email); !v.Valid() {
+		app.failedValidationResponse(w, r, v.Errors)
+		return
+	}
+	user, err := app.models.Users.GetByEmail(*input.Email)
 	if err != nil {
+		switch {
+		case errors.Is(err, data.ErrRecordNotFound):
+			app.invalidCredentialsResponse(w, r)
+		default:
+			app.serverErrorResponse(w, r, err)
+		}
+		return
+	}
+	if user.Admin != false {
+		err = app.models.Books.Update(book)
 		switch {
 		case errors.Is(err, data.ErrEditConflict):
 			app.editConflictResponse(w, r)
 		default:
-			app.serverErrorResponse(w, r, err)
+			app.notAdminErrorResponse(w, r, err)
 		}
 		return
 	}
@@ -234,17 +235,46 @@ func (app *application) deleteBookHandler(w http.ResponseWriter, r *http.Request
 		return
 	}
 
-	// Delete the movie from the database, sending a 404 Not Found response to the
-	// client if there isn't a matching record.
-	err = app.models.Books.Delete(id)
+	var input struct {
+		Email string `json:"email"`
+	}
+
+	err = app.readJSON(w, r, &input)
+	if err != nil {
+		// use our custom error response
+		app.badRequestResponse(w, r, err)
+		return
+	}
+
+	v := validator.New()
+	if data.ValidateEmail(v, input.Email); !v.Valid() {
+		app.failedValidationResponse(w, r, v.Errors)
+		return
+	}
+
+	user, err := app.models.Users.GetByEmail(input.Email)
 	if err != nil {
 		switch {
 		case errors.Is(err, data.ErrRecordNotFound):
-			app.notFoundResponse(w, r)
+			app.invalidCredentialsResponse(w, r)
 		default:
 			app.serverErrorResponse(w, r, err)
 		}
 		return
+	}
+	if user.Admin != false {
+		err = app.models.Books.Delete(id)
+		if err != nil {
+			switch {
+			case errors.Is(err, data.ErrRecordNotFound):
+				app.notFoundResponse(w, r)
+			default:
+				app.serverErrorResponse(w, r, err)
+			}
+			return
+		}
+	} else {
+		app.badRequestResponse(w, r, err)
 	}
 
 	// Return a 200 OK status code along with a success message.
