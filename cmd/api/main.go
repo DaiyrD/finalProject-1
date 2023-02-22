@@ -53,7 +53,7 @@ func main() {
 	flag.StringVar(&cfg.smtp.host, "smtp-host", "smtp.office365.com", "SMTP host")
 	flag.IntVar(&cfg.smtp.port, "smtp-port", 587, "SMTP port")
 	flag.StringVar(&cfg.smtp.username, "smtp-username", "211648@astanait.edu.kz", "SMTP username")
-	flag.StringVar(&cfg.smtp.password, "smtp-password", "OpMAN222ti!", "SMTP password")
+	flag.StringVar(&cfg.smtp.password, "smtp-password", "OpMAN32131222ti!", "SMTP password")
 	flag.StringVar(&cfg.smtp.sender, "smtp-sender", "211648@astanait.edu.kz", "SMTP sender")
 
 	flag.Parse()
@@ -85,31 +85,6 @@ func main() {
 		// flags, and add it to the application struct.
 		mailer: mailer.New(cfg.smtp.host, cfg.smtp.port, cfg.smtp.username, cfg.smtp.password, cfg.smtp.sender),
 	}
-
-	//// create a mux handler instance
-	////mux := http.NewServeMux()
-	////mux.HandleFunc("/v1/healthcheck", app.healthCheckHandler) // here we use method of application
-	//
-	//// Declare HTTP server with some sensible timeout settings, which listens on the
-	//// port provided in the config struct and uses the servemux we created above as the
-	//// handler.
-	//srv := &http.Server{
-	//	Addr: fmt.Sprintf(":%d", cfg.port),
-	//	// Use the httprouter instance returned by app.routes() as the server handler.
-	//	Handler:      app.routes(),
-	//	ErrorLog:     log.New(logger, "", 0),
-	//	IdleTimeout:  time.Minute,
-	//	ReadTimeout:  10 * time.Second,
-	//	WriteTimeout: 30 * time.Second,
-	//}
-	//
-	//// start the HTTP server
-	//logger.PrintInfo("starting server", map[string]string{
-	//	"addr": srv.Addr,
-	//	"env":  cfg.env,
-	//})
-	//err = srv.ListenAndServe()
-	//logger.PrintFatal(err, nil)
 
 	err = app.serve()
 	if err != nil {

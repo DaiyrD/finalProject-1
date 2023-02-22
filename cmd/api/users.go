@@ -13,8 +13,7 @@ func (app *application) registerUserHandler(w http.ResponseWriter, r *http.Reque
 	var input struct {
 		Name  string `json:"name"`
 		Email string `json:"email"`
-		//Password string `json:"password"`
-		Admin bool `json:"admin"`
+		Admin bool   `json:"admin"`
 	}
 	// Parse the request body into the anonymous struct.
 	err := app.readJSON(w, r, &input)

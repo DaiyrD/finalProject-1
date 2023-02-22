@@ -18,6 +18,7 @@ type Models struct {
 	Users  UserModel
 	Tokens TokenModel
 	Books  BookModel
+	Carts  CartModel
 }
 
 // For ease of use, we also add a New() method which returns a Models struct containing
@@ -27,5 +28,6 @@ func NewModels(db *sql.DB) Models {
 		Users:  UserModel{DB: db}, // initialize a new UserModel instance
 		Tokens: TokenModel{DB: db},
 		Books:  BookModel{DB: db},
+		Carts:  CartModel{DB: db},
 	}
 }
