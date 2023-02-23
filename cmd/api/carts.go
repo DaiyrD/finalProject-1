@@ -46,10 +46,12 @@ func (app *application) addToCartHandler(w http.ResponseWriter, r *http.Request)
 		}
 		return
 	}
+
 	if err != nil { // use our custom error response
 		app.badRequestResponse(w, r, err)
 		return
 	}
+
 	books := make([]string, 0)
 	books = append(books, book.Title)
 
@@ -69,6 +71,7 @@ func (app *application) addToCartHandler(w http.ResponseWriter, r *http.Request)
 		app.serverErrorResponse(w, r, err)
 		return
 	}
+
 	headers := make(http.Header)
 	headers.Set("Location", fmt.Sprintf("/v1/cart/%d", cart.Email))
 	err = app.writeJSON(w, http.StatusCreated, envelope{"cart": cart}, headers)
@@ -92,6 +95,7 @@ func (app *application) deleteBookFromCartHandler(w http.ResponseWriter, r *http
 	}
 
 	v := validator.New()
+
 	if data.ValidateEmail(v, input.Email); !v.Valid() {
 		app.failedValidationResponse(w, r, v.Errors)
 		return
@@ -107,6 +111,7 @@ func (app *application) deleteBookFromCartHandler(w http.ResponseWriter, r *http
 		}
 		return
 	}
+
 	if user.Activated != true {
 		app.errorResponse(w, r, 404, "Email is not activated or does not exist")
 		return
@@ -160,7 +165,6 @@ func (app *application) orderBookHandler(w http.ResponseWriter, r *http.Request)
 
 	err := app.readJSON(w, r, &input)
 	if err != nil {
-		// use our custom error response
 		app.badRequestResponse(w, r, err)
 		return
 	}

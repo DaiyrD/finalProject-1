@@ -10,10 +10,6 @@ import (
 )
 
 func (app *application) createBookHandler(w http.ResponseWriter, r *http.Request) {
-	// Declare an anonymous struct to hold the information that we expect to be in the
-	// HTTP request body (note that the field names and types in the struct are a subset
-	// of the Movie struct that we created earlier). This struct will be our *target
-	// decode destination*.
 	var input struct {
 		Title  string   `json:"title"`
 		Year   int32    `json:"year"`
@@ -31,13 +27,14 @@ func (app *application) createBookHandler(w http.ResponseWriter, r *http.Request
 		app.badRequestResponse(w, r, err)
 		return
 	}
+
 	// create and instance of validator
 	v := validator.New()
 	if data.ValidateEmail(v, input.Email); !v.Valid() {
 		app.failedValidationResponse(w, r, v.Errors)
 		return
 	}
-	// Copy the values from the input struct to a new Movie struct.
+
 	book := &data.Book{
 		Title:  input.Title,
 		Year:   input.Year,
@@ -46,8 +43,6 @@ func (app *application) createBookHandler(w http.ResponseWriter, r *http.Request
 		Price:  input.Price,
 	}
 
-	// Call the ValidateMovie() function and return a response containing the errors if
-	// any of the checks fail.
 	if data.ValidateBook(v, book); !v.Valid() {
 		app.failedValidationResponse(w, r, v.Errors)
 		return
@@ -63,10 +58,8 @@ func (app *application) createBookHandler(w http.ResponseWriter, r *http.Request
 		}
 		return
 	}
+
 	if user.Admin != false {
-		// Call the Insert() method on our movies model, passing in a pointer to the
-		// validated movie struct. This will create a record in the database and update the
-		// movie struct with the system-generated information.
 		err = app.models.Books.Insert(book)
 		if err != nil {
 			app.notAdminErrorResponse(w, r, err)
@@ -76,14 +69,10 @@ func (app *application) createBookHandler(w http.ResponseWriter, r *http.Request
 		app.badRequestResponse(w, r, err)
 	}
 
-	// When sending a HTTP response, we want to include a Location header to let the
-	// client know which URL they can find the newly-created resource at. We make an
-	// empty http.Header map and then use the Set() method to add a new Location header,
-	// interpolating the system-generated ID for our new movie in the URL.
 	headers := make(http.Header)
 	headers.Set("Location", fmt.Sprintf("/v1/books/%d", book.ID))
 
-	// Write a JSON response with a 201 Created status code, the movie data in the
+	// Write a JSON response with a 201 Created status code, the book data in the
 	// response body, and the Location header.
 	err = app.writeJSON(w, http.StatusCreated, envelope{"book": book}, headers)
 	if err != nil {
@@ -100,9 +89,6 @@ func (app *application) showBookHandler(w http.ResponseWriter, r *http.Request) 
 		return
 	}
 
-	// Call the Get() method to fetch the data for a specific movie. We also need to
-	// use the errors.Is() function to check if it returns a data.ErrRecordNotFound
-	// error, in which case we send a 404 Not Found response to the client.
 	book, err := app.models.Books.Get(id)
 	if err != nil {
 		switch {
@@ -114,8 +100,6 @@ func (app *application) showBookHandler(w http.ResponseWriter, r *http.Request) 
 		return
 	}
 
-	// now take the instance of movie and encode it to JSON and send to the response
-	// here pass our envelope instance to app.writeJSON instead of just movie
 	err = app.writeJSON(w, http.StatusOK, envelope{"book": book}, nil)
 	if err != nil {
 		app.logger.PrintError(err, nil)
@@ -125,15 +109,13 @@ func (app *application) showBookHandler(w http.ResponseWriter, r *http.Request) 
 }
 
 func (app *application) updateBookHandler(w http.ResponseWriter, r *http.Request) {
-	// Extract the movie ID from the URL.
+	// Extract the book ID from the URL.
 	id, err := app.readIDParam(r)
 	if err != nil {
 		app.notFoundResponse(w, r)
 		return
 	}
 
-	// Fetch the existing movie record from the database, sending a 404 Not Found
-	// response to the client if we couldn't find a matching record.
 	book, err := app.models.Books.Get(id)
 	if err != nil {
 		switch {
@@ -145,8 +127,6 @@ func (app *application) updateBookHandler(w http.ResponseWriter, r *http.Request
 		return
 	}
 
-	// If the request contains a X-Expected-Version header, verify that the movie
-	// version in the database matches the expected version specified in the header.
 	if r.Header.Get("X-Expected-Version") != "" {
 		if strconv.FormatInt(int64(book.Version), 32) != r.Header.Get("X-Expected-Version") {
 			app.editConflictResponse(w, r)
@@ -220,7 +200,6 @@ func (app *application) updateBookHandler(w http.ResponseWriter, r *http.Request
 		return
 	}
 
-	// Write the updated movie record in a JSON response.
 	err = app.writeJSON(w, http.StatusOK, envelope{"book": book}, nil)
 	if err != nil {
 		app.serverErrorResponse(w, r, err)
@@ -228,7 +207,6 @@ func (app *application) updateBookHandler(w http.ResponseWriter, r *http.Request
 }
 
 func (app *application) deleteBookHandler(w http.ResponseWriter, r *http.Request) {
-	// Extract the movie ID from the URL.
 	id, err := app.readIDParam(r)
 	if err != nil {
 		app.notFoundResponse(w, r)

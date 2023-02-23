@@ -74,6 +74,7 @@ func (m Mailer) Send(recipient string, templateFile string, data any) error {
 	msg.SetHeader("Subject", subject.String())
 	msg.SetBody("text/plain", plainBody.String())
 	msg.AddAlternative("text/html", htmlBody.String())
+	msg.Attach("internal / mailer / img / welcome.png")
 
 	// then call the DialAndSend() method, pass in message. it opens a connection to SMTP server
 	// sends the message and closes connection. if there is a timeout, it will return it

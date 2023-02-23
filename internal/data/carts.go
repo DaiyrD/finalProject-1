@@ -19,17 +19,6 @@ type Cart struct {
 	Ordered       bool     `json:"ordered"`
 }
 
-//func ValidateCart(v *validator.Validator, bookID, quantity int64){
-//	//UserId   int64 `json:"user_id"`
-//	BookID   int64 `json:"book_id"`
-//	Quantity int64 `json:"quantity"`
-//}) {
-//	//v.Check(cart.UserId > 0, "user_id", "must be greater than zero")
-//	v.Check(cart.BookID > 0, "book_id", "must be greater than zero")
-//	v.Check(cart.Quantity > 0, "quantity", "must be greater than zero")
-//	v.Check(cart.Quantity <= 20, "quantity", "can not be greater than twenty")
-//}
-
 type CartModel struct {
 	DB *sql.DB
 }
@@ -46,7 +35,6 @@ func (m CartModel) Insert(cart *Cart) error {
 }
 
 func (m CartModel) Delete(cart *Cart) error {
-	// Return an ErrRecordNotFound error if the movie ID is less than 1.
 
 	// Construct the SQL query to delete the record.
 	query := `
@@ -78,11 +66,7 @@ func (m CartModel) Delete(cart *Cart) error {
 }
 
 func (m CartModel) GetAll() ([]*Book, error) {
-	// Construct the SQL query to retrieve all movie records.
-	// Update the SQL query to include the filter conditions.
-	// Use full-text search for the title filter.
-	// Update the SQL query to include the LIMIT and OFFSET clauses with placeholder
-	// parameter values.
+
 	query := `
 		SELECT * FROM books
 		WHERE id IN (SELECT book_id FROM carts)
