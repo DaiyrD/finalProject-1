@@ -169,7 +169,6 @@ func (m BookModel) Update(book *Book) error {
 
 // Add a placeholder method for deleting a specific record from the movies table.
 func (m BookModel) Delete(id int64) error {
-	// Return an ErrRecordNotFound error if the movie ID is less than 1.
 	if id < 1 {
 		return ErrRecordNotFound
 	}

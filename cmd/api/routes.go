@@ -25,8 +25,9 @@ func (app *application) routes() http.Handler {
 	router.HandlerFunc(http.MethodGet, "/v1/books", app.listBooksHandler)
 
 	router.HandlerFunc(http.MethodPost, "/v1/cart", app.addToCartHandler)
-	//router.HandlerFunc(http.MethodDelete, "/v1/cart", app.deleteFromCartByIDHandler)
-	//router.HandlerFunc(http.MethodGet, "/v1/cart", app.listBooksInCartHandler)
+	router.HandlerFunc(http.MethodDelete, "/v1/cart", app.deleteBookFromCartHandler)
+	router.HandlerFunc(http.MethodGet, "/v1/cart", app.listBooksInCartHandler)
+	router.HandlerFunc(http.MethodPatch, "/v1/cart/order", app.orderBookHandler)
 
 	router.HandlerFunc(http.MethodPost, "/v1/users", app.registerUserHandler)
 	router.HandlerFunc(http.MethodPut, "/v1/users/activated", app.activateUserHandler)

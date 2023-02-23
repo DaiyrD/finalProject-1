@@ -1,7 +1,10 @@
 CREATE EXTENSION IF NOT EXISTS citext;
 CREATE TABLE IF NOT EXISTS carts (
-user_id bigint NOT NULL REFERENCES users ON DELETE CASCADE,
+    id bigserial not null primary key,
+email citext NOT NULL,
 books text[] not null,
 book_id bigint NOT NULL REFERENCES books ON DELETE CASCADE,
 quantity int not null,
-total_price int not null)
+total_quantity int not null,
+total_price int not null,
+ordered bool default false)
